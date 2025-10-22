@@ -1,42 +1,72 @@
 import { getDemoToken } from './demoUser';
+import { DYNAMIC_API_BASE_URL, apiRequest, ApiResponse } from '@/config/api';
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api`;
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+export type { ApiResponse };
 
 export const apiCall = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
+  const token = getDemoToken();
+
+  return apiRequest<T>(endpoint, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+};
+
+// Helper function to make HTTP requests with consistent timeout and error handling
+const makeRequest = async (
+  endpoint: string,
+  method: string,
+  body?: unknown
+): Promise<Response> => {
+  const token = getDemoToken();
+  const apiBaseUrl = DYNAMIC_API_BASE_URL();
+  
+  let controller: AbortController;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  
   try {
-    const token = getDemoToken();
+    controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 10000);
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
+    const requestInit: RequestInit = {
+      method,
+      signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        ...options.headers,
+        'Content-Type': 'application/json',
       },
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      return { success: true, data };
-    } else {
-      return { success: false, error: data.message || 'API call failed' };
-    }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error' 
     };
+    
+    if (body !== undefined) {
+      requestInit.body = JSON.stringify(body);
+    }
+    
+    const response = await fetch(`${apiBaseUrl}${endpoint}`, requestInit);
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
+};
+
+// API client with centralized error handling and timeout
+export const api = {
+  get: async (endpoint: string) => makeRequest(endpoint, 'GET'),
+  post: async (endpoint: string, data: unknown) => makeRequest(endpoint, 'POST', data),
+  patch: async (endpoint: string, data: unknown) => makeRequest(endpoint, 'PATCH', data),
+  delete: async (endpoint: string) => makeRequest(endpoint, 'DELETE'),
 };
 
 // Specific API functions

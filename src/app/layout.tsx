@@ -1,9 +1,13 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Unlisted Edge - Trade Unlisted Shares",
-  description: "Access pre-IPO companies and exclusive investment opportunities",
+  title: 'Unlisted Edge - Trading Platform',
+  description: 'Trade unlisted shares with AI-powered insights',
 };
 
 export default function RootLayout({
@@ -13,8 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        {children}
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

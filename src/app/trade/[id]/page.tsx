@@ -1,38 +1,47 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import Link from 'next/link';
-import { placeOrder } from '@/utils/api';
 import { getDemoUser, updateDemoUser } from '@/utils/demoUser';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { DYNAMIC_API_BASE_URL } from '@/config/api';
+import { placeOrder } from '@/utils/api';
+import { RootState, AppDispatch } from '@/store';
+import { fetchKYCStatus } from '@/store/slices/simpleKycSlice';
 
 interface Company {
   id: number;
   symbol: string;
   name: string;
-  description: string;
+  current_price: number;
   sector: string;
-  industry: string;
-  current_price: string;
-  market_cap: string;
+  description: string;
   total_shares: number;
   available_shares: number;
+  market_cap: number;
+  pe_ratio: number;
+  founded_year: number;
+  employees: number;
+  revenue: number;
+  is_active: boolean;
 }
 
 export default function TradePage() {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const { status: kycStatus, isLoading: kycLoading } = useSelector((state: RootState) => state.kyc);
+  
   const [company, setCompany] = useState<Company | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [orderType, setOrderType] = useState<'BUY' | 'SELL'>('BUY');
-  const [quantity, setQuantity] = useState('');
-  const [price, setPrice] = useState('');
   const [orderMode, setOrderMode] = useState<'MARKET' | 'LIMIT'>('MARKET');
+  const [quantity, setQuantity] = useState<string>('1');
+  const [price, setPrice] = useState<string>('0');
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -42,16 +51,19 @@ export default function TradePage() {
     // Load demo user wallet balance
     const user = getDemoUser();
     setWalletBalance(user.wallet_balance);
-  }, [params.id]);
+    
+    // Fetch KYC status
+    dispatch(fetchKYCStatus());
+  }, [params.id, dispatch]);
 
   const fetchCompany = async (id: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/companies/${id}`);
+      const response = await fetch(`${DYNAMIC_API_BASE_URL()}/companies/${id}`);
       const data = await response.json();
-      
+
       if (response.ok) {
         setCompany(data.company);
-        setPrice(data.company.current_price);
+        setPrice(data.company.current_price.toString());
       } else {
         setError('Company not found');
       }
@@ -109,7 +121,7 @@ export default function TradePage() {
 
       if (result.success) {
         setSuccess(`${orderType} order placed successfully! ${orderQuantity} shares of ${company?.symbol} at ₹${orderPrice}`);
-        
+
         // Update local wallet balance for demo
         if (orderType === 'BUY') {
           const user = getDemoUser();
@@ -119,9 +131,9 @@ export default function TradePage() {
         }
 
         // Clear form
-        setQuantity('');
-        setPrice(company?.current_price || '');
-        
+        setQuantity('1');
+        setPrice(company?.current_price.toString() || '0');
+
         // Redirect after 3 seconds
         setTimeout(() => {
           router.push('/portfolio');
@@ -152,6 +164,64 @@ export default function TradePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading company data...</div>
+      </div>
+    );
+  }
+
+  // KYC Check - Block trading if not verified
+  const isKYCVerified = kycStatus?.canTrade || false;
+
+  if (!isKYCVerified) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900">
+        {/* Header */}
+        <header className="bg-black/20 backdrop-blur-sm border-b border-white/10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <Link href="/" className="text-xl md:text-2xl font-bold text-white">
+                Unlisted Edge
+              </Link>
+              <nav className="flex items-center space-x-6">
+                <Link href="/dashboard" className="text-white/70 hover:text-white">Dashboard</Link>
+                <Link href="/companies" className="text-white/70 hover:text-white">Companies</Link>
+                <Link href="/portfolio" className="text-white/70 hover:text-white">Portfolio</Link>
+                <Link href="/wallet" className="text-white/70 hover:text-white">Wallet</Link>
+              </nav>
+            </div>
+          </div>
+        </header>
+
+        {/* KYC Required Message */}
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center">
+            <div className="text-6xl mb-6">🚫</div>
+            <h1 className="text-3xl font-bold text-white mb-4">KYC Verification Required</h1>
+            <p className="text-white/80 text-lg mb-6">
+              You need to complete KYC verification before you can start trading on our platform.
+            </p>
+            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+              <p className="text-yellow-200 text-sm">
+                <strong>Why KYC?</strong> KYC (Know Your Customer) verification is required by law to ensure secure and compliant trading.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Link
+                href="/kyc"
+                className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+              >
+                Complete KYC Verification
+              </Link>
+              <div>
+                <Link
+                  href="/companies"
+                  className="text-blue-300 hover:text-blue-200 underline"
+                >
+                  ← Back to Companies
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -198,7 +268,7 @@ export default function TradePage() {
                 <div>
                   <h1 className="text-3xl font-bold text-white mb-2">{company.symbol}</h1>
                   <p className="text-blue-200 text-lg mb-2">{company.name}</p>
-                  <p className="text-white/70">{company.sector} • {company.industry}</p>
+                  <p className="text-white/70">{company.sector}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-green-400">
@@ -236,22 +306,20 @@ export default function TradePage() {
                         <button
                           type="button"
                           onClick={() => setOrderType('BUY')}
-                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${
-                            orderType === 'BUY'
-                              ? 'bg-green-600 text-white'
-                              : 'bg-white/10 text-white/70 hover:bg-white/20'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${orderType === 'BUY'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
                         >
                           BUY
                         </button>
                         <button
                           type="button"
                           onClick={() => setOrderType('SELL')}
-                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${
-                            orderType === 'SELL'
-                              ? 'bg-red-600 text-white'
-                              : 'bg-white/10 text-white/70 hover:bg-white/20'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${orderType === 'SELL'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
                         >
                           SELL
                         </button>
@@ -266,24 +334,22 @@ export default function TradePage() {
                           type="button"
                           onClick={() => {
                             setOrderMode('MARKET');
-                            setPrice(company.current_price);
+                            setPrice(company.current_price.toString());
                           }}
-                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${
-                            orderMode === 'MARKET'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white/10 text-white/70 hover:bg-white/20'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${orderMode === 'MARKET'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
                         >
                           MARKET
                         </button>
                         <button
                           type="button"
                           onClick={() => setOrderMode('LIMIT')}
-                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${
-                            orderMode === 'LIMIT'
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-white/10 text-white/70 hover:bg-white/20'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${orderMode === 'LIMIT'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
                         >
                           LIMIT
                         </button>
@@ -353,11 +419,10 @@ export default function TradePage() {
                     <button
                       type="submit"
                       disabled={submitting || !quantity || !price}
-                      className={`w-full py-4 px-6 rounded-lg font-bold text-lg transition-colors ${
-                        orderType === 'BUY'
-                          ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-800'
-                          : 'bg-red-600 hover:bg-red-700 disabled:bg-red-800'
-                      } text-white disabled:opacity-50`}
+                      className={`w-full py-4 px-6 rounded-lg font-bold text-lg transition-colors ${orderType === 'BUY'
+                        ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-800'
+                        : 'bg-red-600 hover:bg-red-700 disabled:bg-red-800'
+                        } text-white disabled:opacity-50`}
                     >
                       {submitting ? 'Placing Order...' : `${orderType} ${quantity || 0} Shares`}
                     </button>
@@ -367,6 +432,49 @@ export default function TradePage() {
 
               {/* Sidebar */}
               <div className="space-y-6">
+                {/* KYC Status */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                  <h3 className="text-lg font-bold text-white mb-4">KYC Status</h3>
+                  {kycLoading ? (
+                    <div className="text-white/70">Loading...</div>
+                  ) : kycStatus ? (
+                    <div className="space-y-2">
+                      <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                        kycStatus.status === 'verified' ? 'bg-green-500/20 text-green-300' :
+                        kycStatus.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
+                        kycStatus.status === 'rejected' ? 'bg-red-500/20 text-red-300' :
+                        'bg-gray-500/20 text-gray-300'
+                      }`}>
+                        {kycStatus.status.toUpperCase()}
+                      </div>
+                      <p className="text-white/70 text-sm">{kycStatus.message}</p>
+                      {kycStatus.canTrade ? (
+                        <div className="flex items-center text-green-300 text-sm">
+                          <span className="mr-1">✅</span>
+                          Trading Enabled
+                        </div>
+                      ) : (
+                        <Link
+                          href="/kyc"
+                          className="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded"
+                        >
+                          Complete KYC
+                        </Link>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-white/70">
+                      <p className="text-sm mb-2">KYC verification required</p>
+                      <Link
+                        href="/kyc"
+                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded"
+                      >
+                        Start KYC
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 {/* Wallet Info */}
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                   <h3 className="text-lg font-bold text-white mb-4">Wallet Balance</h3>
@@ -388,7 +496,7 @@ export default function TradePage() {
                     <div className="flex justify-between">
                       <span className="text-white/70">Market Cap:</span>
                       <span className="text-white">
-                        ₹{(parseFloat(company.market_cap) / 100000000).toFixed(1)} Cr
+                        ₹{(company.market_cap / 100000000).toFixed(1)} Cr
                       </span>
                     </div>
                     <div className="flex justify-between">

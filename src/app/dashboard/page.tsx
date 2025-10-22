@@ -34,6 +34,20 @@ export default function DashboardPage() {
             <nav className="flex items-center space-x-6">
               <span className="text-white/70">Welcome, {user.first_name}!</span>
               <a
+                href="/kyc"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                KYC Verification
+              </a>
+              {user.role === 'admin' && (
+                <a
+                  href="/admin"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Admin Panel
+                </a>
+              )}
+              <a
                 href="/"
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
               >

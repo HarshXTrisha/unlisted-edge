@@ -2,11 +2,12 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticateToken } = require('./auth');
+const { requireKYCVerification } = require('./simple-kyc');
 
 const router = express.Router();
 
-// Create new order
-router.post('/', authenticateToken, [
+// Create new order - KYC required
+router.post('/', authenticateToken, requireKYCVerification, [
   body('company_id').isInt({ min: 1 }),
   body('type').isIn(['BUY', 'SELL']),
   body('order_type').isIn(['MARKET', 'LIMIT']),

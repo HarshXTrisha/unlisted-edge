@@ -108,7 +108,7 @@ router.post('/login', [
   }
 });
 
-// Middleware to verify JWT token
+// Middleware to verify JWT token (supports demo tokens)
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -117,12 +117,33 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: 'Access token required' });
   }
 
+  // Try to verify as JWT first
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
+    if (!err) {
+      req.user = user;
+      return next();
     }
-    req.user = user;
-    next();
+
+    // If JWT verification fails, try demo token (only in development/test)
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      try {
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8'));
+        
+        // Validate decoded token structure
+        if (decoded.userId && 
+            (typeof decoded.userId === 'string' || typeof decoded.userId === 'number') &&
+            decoded.email && 
+            typeof decoded.email === 'string' &&
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(decoded.email)) {
+          req.user = decoded;
+          return next();
+        }
+      } catch (demoErr) {
+        // Demo token parsing failed - continue to error response
+      }
+    }
+
+    return res.status(403).json({ message: 'Invalid token' });
   });
 };
 

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { DYNAMIC_API_BASE_URL } from '@/config/api';
 
 interface Company {
   id: number;
@@ -30,7 +29,7 @@ export default function CompaniesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/companies`);
+      const response = await fetch(`${DYNAMIC_API_BASE_URL()}/companies`);
       const data = await response.json();
       
       if (response.ok) {

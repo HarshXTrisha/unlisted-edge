@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DYNAMIC_API_BASE_URL, getDynamicApiUrl } from '@/config/api';
 
 export default function Home() {
   const [apiStatus, setApiStatus] = useState('Checking...');
@@ -14,8 +15,8 @@ export default function Home() {
 
   useEffect(() => {
     // Check if backend API is running
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    fetch(`${API_BASE_URL}/api/health`)
+    const apiUrl = getDynamicApiUrl();
+    fetch(`${apiUrl}/api/health`)
       .then(res => res.json())
       .then(data => setApiStatus(data.message))
       .catch(() => setApiStatus('Backend not running'));
@@ -26,8 +27,8 @@ export default function Home() {
 
   const fetchPlatformStats = async () => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_BASE_URL}/api/companies`);
+      const apiBaseUrl = DYNAMIC_API_BASE_URL();
+      const response = await fetch(`${apiBaseUrl}/companies`);
       const data = await response.json();
       
       if (response.ok && data.companies) {
@@ -63,6 +64,8 @@ export default function Home() {
               <Link href="/news" className="hover:text-blue-300 transition-colors">News</Link>
               <Link href="/education" className="hover:text-blue-300 transition-colors">Education</Link>
               <Link href="/ai" className="hover:text-blue-300 transition-colors">AI Insights</Link>
+              <Link href="/kyc" className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors">KYC</Link>
+              <Link href="/login" className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">Login</Link>
               <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">Dashboard</Link>
             </nav>
             {/* Mobile/Tablet Menu Button */}
