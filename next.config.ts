@@ -10,9 +10,18 @@ const nextConfig: NextConfig = {
     }
   },
   
-  // Image optimization
+  // Image optimization (updated to use remotePatterns)
   images: {
-    domains: ['localhost', 'vercel.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.vercel.app',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+    ],
   },
 };
 

@@ -1,26 +1,20 @@
-// KYC Status API route for Vercel
-import { authenticateToken } from '../../../server/middleware/auth';
-import knex from '../../../server/config/database';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
-  }
-
+export async function GET(request: NextRequest) {
   try {
     // Simple authentication check
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.split(' ')[1];
 
     if (!token) {
-      return res.status(401).json({
+      return NextResponse.json({
         success: false,
         error: { type: 'NO_TOKEN', message: 'Access token required' }
-      });
+      }, { status: 401 });
     }
 
     // For now, return a simple response
-    return res.json({
+    return NextResponse.json({
       success: true,
       data: {
         status: 'not_started',
@@ -32,9 +26,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('KYC status error:', error);
-    res.status(500).json({
+    return NextResponse.json({
       success: false,
       message: 'Failed to get KYC status'
-    });
+    }, { status: 500 });
   }
 }
