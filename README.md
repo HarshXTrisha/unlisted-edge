@@ -1,36 +1,169 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unlisted Edge - Trading Platform
 
-## Getting Started
+A full-stack trading platform for unlisted shares with AI-powered insights.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Pre-IPO Trading**: Access to unlisted company shares
+- **Order Management**: Buy/Sell orders with matching engine
+- **Portfolio Tracking**: Real-time portfolio management
+- **Wallet System**: Secure fund management
+- **AI Insights**: Company analysis and recommendations
+- **Real-time Updates**: Live price feeds and notifications
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Recharts** - Data visualization
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **PostgreSQL** - Database
+- **Knex.js** - Query builder
+- **JWT** - Authentication
+- **bcrypt** - Password hashing
+
+## 📋 Prerequisites
+
+- Node.js 18.17.0 or higher
+- PostgreSQL 12 or higher
+- npm or yarn
+
+## 🔧 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd unlisted-trading-platform
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   Update the `.env` file with your database credentials and other settings.
+
+4. **Set up PostgreSQL database**
+   ```bash
+   # Create database
+   createdb unlisted_trading
+   
+   # Run migrations
+   npm run migrate
+   ```
+
+5. **Start the development servers**
+   
+   **Frontend (Next.js):**
+   ```bash
+   npm run dev
+   ```
+   
+   **Backend (Express):**
+   ```bash
+   npm run server:dev
+   ```
+
+## 📁 Project Structure
+
+```
+unlisted-trading-platform/
+├── src/                    # Next.js frontend
+│   ├── app/               # App Router pages
+│   └── components/        # React components
+├── server/                # Express.js backend
+│   ├── config/           # Database configuration
+│   ├── migrations/       # Database migrations
+│   ├── routes/           # API routes
+│   └── index.js          # Server entry point
+├── public/               # Static assets
+└── package.json          # Dependencies
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🗄️ Database Schema
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Core Tables
+- **users** - User accounts and authentication
+- **companies** - Unlisted company information
+- **orders** - Buy/sell orders
+- **trades** - Executed transactions
+- **portfolios** - User holdings
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Environment Variables
 
-## Learn More
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/unlisted_trading
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=unlisted_trading
+DB_USER=postgres
+DB_PASSWORD=your_password
 
-To learn more about Next.js, take a look at the following resources:
+# JWT
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Server
+PORT=5000
+NODE_ENV=development
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📜 Available Scripts
 
-## Deploy on Vercel
+- `npm run dev` - Start Next.js development server
+- `npm run server` - Start Express server
+- `npm run server:dev` - Start Express server with nodemon
+- `npm run migrate` - Run database migrations
+- `npm run migrate:rollback` - Rollback migrations
+- `npm run build` - Build for production
+- `npm start` - Start production server
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚦 Getting Started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Make sure PostgreSQL is running
+2. Run migrations: `npm run migrate`
+3. Start backend: `npm run server:dev`
+4. Start frontend: `npm run dev`
+5. Visit `http://localhost:3000`
+
+## 🔧 Development
+
+### Adding New Features
+1. Create database migrations in `server/migrations/`
+2. Add API routes in `server/routes/`
+3. Create frontend components in `src/components/`
+4. Add pages in `src/app/`
+
+### Database Operations
+```bash
+# Create new migration
+npx knex migrate:make migration_name --knexfile server/knexfile.js
+
+# Run migrations
+npm run migrate
+
+# Rollback last migration
+npm run migrate:rollback
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
