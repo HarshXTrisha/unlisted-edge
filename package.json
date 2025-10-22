@@ -18,8 +18,8 @@
     "migrate:rollback": "knex migrate:rollback --knexfile server/knexfile.js",
     "seed": "knex seed:run --knexfile server/knexfile.js",
     "test": "jest",
-    "vercel-build": "npm run migrate && npm run seed && next build",
-    "postinstall": "npm run migrate",
+    "vercel-build": "next build",
+    "postinstall": "echo 'Skipping migrations for Vercel build'",
     "test:watch": "jest --watch"
   },
   "dependencies": {
