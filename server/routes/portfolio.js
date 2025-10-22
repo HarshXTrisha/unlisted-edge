@@ -68,10 +68,6 @@ router.get('/performance', authenticateToken, async (req, res) => {
     
     // Validate and sanitize days parameter
     days = Math.min(Math.max(parseInt(days, 10) || 30, 1), 365);
-    
-    if (isNaN(days)) {
-      return res.status(400).json({ message: 'Invalid days parameter' });
-    }
 
     // Get user's trades for the specified period
     const trades = await db('trades')
