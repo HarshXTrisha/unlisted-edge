@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 interface Company {
   id: number;
   symbol: string;
@@ -28,7 +30,7 @@ export default function CompaniesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/companies');
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
       const data = await response.json();
       
       if (response.ok) {
@@ -211,7 +213,7 @@ export default function CompaniesPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-white">
-                ₹{Math.round(companies.reduce((acc, c) => acc + parseFloat(c.current_price), 0) / companies.length)}
+                ₹{companies.length > 0 ? Math.round(companies.reduce((acc, c) => acc + parseFloat(c.current_price), 0) / companies.length) : 0}
               </div>
               <div className="text-sm text-white/70">Avg. Price</div>
             </div>

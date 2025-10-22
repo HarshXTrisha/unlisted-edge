@@ -14,7 +14,8 @@ export default function Home() {
 
   useEffect(() => {
     // Check if backend API is running
-    fetch('http://localhost:5000/api/health')
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    fetch(`${API_BASE_URL}/api/health`)
       .then(res => res.json())
       .then(data => setApiStatus(data.message))
       .catch(() => setApiStatus('Backend not running'));
@@ -25,7 +26,8 @@ export default function Home() {
 
   const fetchPlatformStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/companies');
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
       const data = await response.json();
       
       if (response.ok && data.companies) {

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 interface Company {
   id: number;
   symbol: string;
@@ -51,7 +53,9 @@ export default function CompanyDetailPage() {
   const fetchCompanyDetails = async (id: string) => {
     try {
       // Fetch company details
-      const companyResponse = await fetch(`http://localhost:5000/api/companies/${id}`);
+      const companyResponse = await fetch(`${API_BASE_URL}/api/companies/${id}`, {
+        signal: AbortSignal.timeout(10000),
+      });
       const companyData = await companyResponse.json();
       
       if (companyResponse.ok) {
@@ -62,7 +66,9 @@ export default function CompanyDetailPage() {
       }
 
       // Fetch company stats
-      const statsResponse = await fetch(`http://localhost:5000/api/companies/${id}/stats`);
+      const statsResponse = await fetch(`${API_BASE_URL}/api/companies/${id}/stats`, {
+        signal: AbortSignal.timeout(10000),
+      });
       const statsData = await statsResponse.json();
       
       if (statsResponse.ok) {
@@ -180,7 +186,13 @@ export default function CompanyDetailPage() {
                 >
                   Trade Now
                 </Link>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors">
+                <button 
+                  onClick={() => {
+                    // TODO: Implement watchlist functionality
+                    alert(`Added ${company.symbol} to watchlist! (Feature coming soon)`);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+                >
                   Add to Watchlist
                 </button>
               </div>
@@ -257,7 +269,7 @@ export default function CompanyDetailPage() {
             {recentTrades.length > 0 ? (
               <div className="space-y-3">
                 {recentTrades.map((trade, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <div key={`${trade.created_at}-${trade.price}-${trade.quantity}-${index}`} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                     <div>
                       <div className="text-white font-semibold">{formatCurrency(trade.price)}</div>
                       <div className="text-white/50 text-sm">{formatDate(trade.created_at)}</div>

@@ -52,6 +52,11 @@ A full-stack trading platform for unlisted shares with AI-powered insights.
    ```
    Update the `.env` file with your database credentials and other settings.
 
+   **Required Environment Variables:**
+   - `DB_PASSWORD` - Database password (required in production)
+   - `NEXT_PUBLIC_API_URL` - API base URL (defaults to http://localhost:5000)
+   - `JWT_SECRET` - JWT signing secret (change in production)
+
 4. **Set up PostgreSQL database**
    ```bash
    # Create database

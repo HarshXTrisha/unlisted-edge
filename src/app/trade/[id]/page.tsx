@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { placeOrder } from '@/utils/api';
 import { getDemoUser, updateDemoUser } from '@/utils/demoUser';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 interface Company {
   id: number;
   symbol: string;
@@ -44,7 +46,7 @@ export default function TradePage() {
 
   const fetchCompany = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/companies/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/companies/${id}`);
       const data = await response.json();
       
       if (response.ok) {
